@@ -28,8 +28,9 @@ public class SetupRemote implements Command {
                           final Path currentPath) throws IOException, GitAPIException {
         final StoredConfig storedConfig = git.getRepository().getConfig();
 
+        final String spaceName = new GetSpaceName().execute(currentPath);
         final String repoName = new GetRepoName().execute(currentPath);
-        final String remoteURL = integration.createRepository(repoName);
+        final String remoteURL = integration.createRepository(spaceName, repoName);
         storedConfig.setString("remote", "origin", "url", remoteURL);
         storedConfig.setString("remote", "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*");
 

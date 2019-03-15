@@ -95,6 +95,32 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.28.0</version>
+        <!--<configuration>-->
+          <!--<images>-->
+            <!--<image>-->
+              <!--<name>porcelli.me/bc-github-webhook:${project.version}</name>-->
+              <!--<alias>bc-github-webhook</alias>-->
+              <!--<build>-->
+                <!--<env>-->
+                  <!--<BC_USERNAME>adminUser</BC_USERNAME>-->
+                  <!--<BC_PASSWORD>password</BC_PASSWORD>-->
+                  <!--<PORT>9090</PORT>-->
+                <!--</env>-->
+                <!--<from>adoptopenjdk/openjdk8:alpine-jre</from>-->
+                <!--<assembly>-->
+                  <!--<descriptorRef>artifact</descriptorRef>-->
+                <!--</assembly>-->
+                <!--<cmd>java -jar -Dbc.username=$BC_USERNAME -Dbc.password=$BC_PASSWORD -Dport=$PORT maven/${project.name}-${project.version}.jar</cmd>-->
+              <!--</build>-->
+            <!--</image>-->
+          <!--</images>-->
+        <!--</configuration>-->
+      </plugin>
+
     </plugins>
   </build>
 </project>

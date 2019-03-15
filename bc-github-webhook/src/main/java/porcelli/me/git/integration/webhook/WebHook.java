@@ -1,5 +1,7 @@
 package porcelli.me.git.integration.webhook;
 
+import java.io.File;
+
 import com.jcraft.jsch.JSch;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -16,14 +18,20 @@ public class WebHook {
         JSch.setConfig("StrictHostKeyChecking", "no");
         try {
             new WebHook().run();
+            System.out.println("WebHook Up and running!");
         } catch (Throwable t) {
             t.printStackTrace();
         }
     }
 
     public void run() throws Exception {
-
-        final int port = 9090;
+        int _port;
+        try {
+            _port = Integer.valueOf(System.getProperty("port", "9090"));
+        } catch (final Exception ex) {
+            _port = 9090;
+        }
+        final int port = _port;
         final Server server = new Server(port);
 
         // Setup the basic Application "context" at "/".

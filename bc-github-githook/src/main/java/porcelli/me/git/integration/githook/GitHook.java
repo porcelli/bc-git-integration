@@ -31,10 +31,30 @@ import static java.util.Comparator.comparing;
 
 public class GitHook {
 
+    private enum SyncMode {
+        ALWAYS,
+        ON_SYNC
+    }
+
     public static void main(String[] args) throws IOException, GitAPIException {
+        final String username = System.getProperty("gh.username");
+        final String password = System.getProperty("gh.password");
+        final String bcurl = System.getProperty("bc.url");
+
+        final SyncMode syncMode = getSyncMode();
+
+        if (bcurl == null) {
+            System.err.println("System property 'bc.url' not provided.");
+            System.exit(1);
+        }
+        System.out.println("'gh.username' " + username);
+        System.out.println("'gh.password' " + password);
+        System.out.println("'bc.url' " + bcurl);
+
         final Path currentPath = new File("").toPath().toAbsolutePath();
         final String parentFolderName = currentPath.getParent().getName(currentPath.getParent().getNameCount() - 1).toString();
-        if (parentFolderName.equalsIgnoreCase("system")) {
+        if (parentFolderName.equalsIgnoreCase("system") ||
+                parentFolderName.equalsIgnoreCase("config")) {
             return;
         }
         final Repository repo = new FileRepositoryBuilder()
@@ -66,15 +86,14 @@ public class GitHook {
                 })
                 .max(comparing((RevCommit commit) -> commit.getAuthorIdent().getWhen()))
                 .ifPresent(newestCommit -> {
-                    RevCommit commit = newestCommit;
                     try {
-                        boolean hasSyncOnCommitMessage = commit.getFullMessage().trim().startsWith("sync:");
+                        boolean executeRemoteSync = syncMode.equals(SyncMode.ALWAYS) || newestCommit.getFullMessage().trim().startsWith("sync:");
 
-                        if (hasSyncOnCommitMessage) {
+                        if (executeRemoteSync) {
                             final Map<ObjectId, String> branchesAffected = git
                                     .nameRev()
                                     .addPrefix("refs/heads")
-                                    .add(commit)
+                                    .add(newestCommit)
                                     .call();
 
                             for (String remoteName : remotes) {
@@ -96,11 +115,13 @@ public class GitHook {
                                         }
                                     } else {
                                         git.fetch().call();
-                                        final TrackingStatusCommand trackingStatusCommand = new TrackingStatusCommand(git.getRepository());
-                                        final TrackingStatus counts = trackingStatusCommand.getCounts(ref);
-                                        if (counts.getCommitsAhead() > 0) {
-                                            final RevCommit id = new GetPreviousCommitCommand(repo).execute(commit, counts.getCommitsAhead() - 1);
-                                            new SquashCommand(git, ref, id.name(), commit.getFullMessage()).execute(commit);
+                                        if (!syncMode.equals(SyncMode.ALWAYS)) {
+                                            final TrackingStatusCommand trackingStatusCommand = new TrackingStatusCommand(git.getRepository());
+                                            final TrackingStatus counts = trackingStatusCommand.getCounts(ref);
+                                            if (counts.getCommitsAhead() > 0) {
+                                                final RevCommit id = new GetPreviousCommitCommand(repo).execute(newestCommit, counts.getCommitsAhead() - 1);
+                                                new SquashCommand(git, ref, id.name(), newestCommit.getFullMessage()).execute(newestCommit);
+                                            }
                                         }
                                         git.push()
                                                 .setRefSpecs(new RefSpec(ref + ":" + ref))
@@ -115,5 +136,13 @@ public class GitHook {
                         throw new RuntimeException(e);
                     }
                 });
+    }
+
+    private static SyncMode getSyncMode() {
+        try {
+            return SyncMode.valueOf(System.getProperty("sync.mode", SyncMode.ALWAYS.name()).toUpperCase());
+        } catch (Exception ex) {
+            return SyncMode.ALWAYS;
+        }
     }
 }

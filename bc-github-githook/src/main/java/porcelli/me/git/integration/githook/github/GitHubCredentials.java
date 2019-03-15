@@ -13,18 +13,25 @@ public class GitHubCredentials {
     private String space = null;
 
     public GitHubCredentials() {
-        File homeDir = new File(System.getProperty("user.home"));
-        File propertyFile = new File(homeDir, ".github");
+        final String username = System.getProperty("gh.username");
+        final String password = System.getProperty("gh.password");
 
-        Properties props = new Properties();
-        try (FileInputStream in = new FileInputStream(propertyFile)) {
-            props.load(in);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
+        if (username != null && password != null) {
+            credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
+        } else {
+            File homeDir = new File(System.getProperty("user.home"));
+            File propertyFile = new File(homeDir, ".github");
+
+            Properties props = new Properties();
+            try (FileInputStream in = new FileInputStream(propertyFile)) {
+                props.load(in);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new RuntimeException(ex);
+            }
+            space = props.getProperty("login");
+            this.credentialsProvider = new UsernamePasswordCredentialsProvider(props.getProperty("login"), props.getProperty("password"));
         }
-        space = props.getProperty("login");
-        this.credentialsProvider = new UsernamePasswordCredentialsProvider(props.getProperty("login"), props.getProperty("password"));
     }
 
     public CredentialsProvider getCredentials() {
