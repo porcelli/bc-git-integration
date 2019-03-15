@@ -6,7 +6,7 @@
 
   <groupId>me.porcelli.bc-github-integration</groupId>
   <artifactId>bc-github-integration-parent</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0-Beta1</version>
 
   <name>Sample Business Central Git Integration with GitHub - Using GitHooks and WebHooks</name>
   <packaging>pom</packaging>

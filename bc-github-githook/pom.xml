@@ -7,7 +7,7 @@
   <parent>
     <groupId>me.porcelli.bc-github-integration</groupId>
     <artifactId>bc-github-integration-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-Beta1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
